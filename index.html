@@ -1,0 +1,630 @@
+<html style="padding-bottom: 63px;"><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>GENERATOR BBFS</title>
+<script src="https://rules.quantcount.com/rules-p-0cfM8Oh7M9bVQ.js" async=""></script><script async="" src="http://widgets.amung.us/small.js"></script></head>
+<body><div style="display:none"><script src="https://secure.quantserve.com/quant.js" async="" type="text/javascript"></script><script type="text/javascript">
+var _qevents = _qevents || [];
+(function() {
+var elem = document.createElement('script');
+elem.src = (document.location.protocol == "https:" ? "https://secure" : "http://edge") + ".quantserve.com/quant.js";
+elem.async = true;
+elem.type = "text/javascript";
+var scpt = document.getElementsByTagName('script')[0];
+scpt.parentNode.insertBefore(elem, scpt);
+})();
+_qevents.push({
+qacct:"p-0cfM8Oh7M9bVQ"
+});
+</script>
+<noscript>
+<img src="//pixel.quantserve.com/pixel/p-0cfM8Oh7M9bVQ.gif" border="0" height="1" width="1" alt=""/>
+</noscript></div>
+  <script type="text/javascript">
+var d=0;
+a = new Array();
+  
+// ========================================================
+function ClearReset() {
+  window.document.interfaceform.maxwidth.value = "";
+  window.document.interfaceform.inputstring.value = "";
+  window.document.interfaceform.permlist.value = "";
+  window.document.interfaceform.feedback.value = "";
+}
+
+// ========================================================
+function GeneratePermutations() {
+  var inputstring=window.document.interfaceform.inputstring.value;
+  inputstring=removeSpaces(inputstring);
+  if (inputstring=="") return;
+
+  var maxoutput=window.document.interfaceform.maxoutput.value;
+  maxoutput=removeSpaces(maxoutput);
+
+  var display_list=window.document.interfaceform.chkbx_display.checked;
+  var allow_adjacent_equals=window.document.interfaceform.chkbx_allow.checked;
+  var wrap_output=window.document.interfaceform.chkbx_wrap.checked;
+  var circular_only=window.document.interfaceform.chkbx_circular.checked;
+  var derange_only=window.document.interfaceform.chkbx_derange.checked;
+  var shuffle=window.document.interfaceform.chkbx_shuffle.checked;
+
+  var maxwidth=window.document.interfaceform.maxwidth.value;
+  maxwidth=removeSpaces(maxwidth);
+
+  var comma_separated=window.document.interfaceform.chkbx_comma.checked;
+
+// Show status.
+//      This does not work, since Javascript has no way to flush the output during function execution.
+//      If you find a SIMPLE way, please let me know?  Thanks - DVdm
+//
+window.document.interfaceform.permlist.value = "";
+if (display_list) {
+    window.document.interfaceform.feedback.value = "Generating..."
+  } else {
+    window.document.interfaceform.feedback.value = "Counting..."
+  }
+
+// Get time
+//
+  var currentDate = new Date();
+  var seconds = currentDate.valueOf()
+  
+// Automatic comma separation check (maybe later)
+//
+  if ( inputstring.indexOf(',') >-1 ) {
+      comma_separated=true;
+      window.document.interfaceform.chkbx_comma.checked=true;
+  } else {
+      comma_separated=false;
+      window.document.interfaceform.chkbx_comma.checked=false;
+  }
+
+  var delimiter = "";
+  if (wrap_output) {
+      if (comma_separated)
+          delimiter = "  ";
+      else
+          delimiter = "*";
+      } else {
+          delimiter = "\n";
+  }
+  var delimwidth = delimiter.length;
+
+  var chars = new Array();
+  var charray = new Array();
+  var frequency = new Array();
+  var inputchar, ii, jj, cc, ccc, numchars, nn=0;
+
+  if (comma_separated) {
+      chars = inputstring.split(",");
+      numchars = chars.length;
+    } else {
+    numchars = inputstring.length;
+    for (ii=0; ii<numchars; ii++) chars[ii] = inputstring.charAt(ii);
+  }
+
+  for (ii=0; ii<numchars; ii++) {
+    inputchar = chars[ii];
+    cc = -1;
+    for (ccc=0; ccc<charray.length; ccc++) { if (inputchar == charray[ccc]) cc = ccc; }
+    if (cc<0) {
+      charray[charray.length] = inputchar;
+      frequency[frequency.length] = 1;
+    } else {
+      frequency[cc]++;
+    }
+  }
+
+  d = 0;
+  for (ii=0; ii<frequency.length; ii++) {
+    cc = frequency[ii];
+    for (jj=0; jj<cc; jj++) {
+      a[d] = nn;
+      d++;
+    }
+    nn++;
+  }
+
+  var perms = 0;
+  var output_text = delimiter;
+  var new_perm = "";
+  var circular = false;
+  var test_perm = "";
+  var okay = true;
+  var firstcomma = -1;
+  var busy = true
+  var ellipsis = "";
+  var atleast = "";
+  var insertat = 0;
+  var dmax=d;
+  if (maxwidth > 0) {
+    if (maxwidth <= d) {
+      dmax = maxwidth;
+    } else {
+      window.document.interfaceform.feedback.value = "Max width " + (maxwidth) + " exceeds " + (d) + ".\n";
+      return;
+    }
+  }
+
+  do {
+    if ( (allow_adjacent_equals) || (! Adjacent_equals()) ) {
+    
+      okay = true;
+      new_perm = "";
+      
+      if (comma_separated) {
+
+        for (ii=0; ii<dmax; ii++) {
+          new_perm = new_perm + charray[a[ii]];
+          if (ii<dmax-1) new_perm = new_perm+",";
+        }
+        if (maxwidth > 0) {
+          if ( output_text.indexOf(new_perm+delimiter) >-1 ) okay = false;    // yes, this is dirty
+        }
+        if (circular_only) {
+          test_perm = new_perm;
+          test_perm_len = test_perm.length;
+          for (ii=0; ii<dmax-1; ii++) {
+            firstcomma = test_perm.indexOf(",");
+            test_perm = test_perm.substring(firstcomma+1,test_perm_len) + "," + test_perm.substring(0,firstcomma);
+            if ( output_text.indexOf(test_perm) >-1 ) {
+              okay = false;
+              break;
+            }
+          }
+        }
+        if (derange_only) {
+          for (ii=0; ii<dmax; ii++) {
+            if ( charray[a[ii]] == chars[ii]) {
+              okay = false;
+              break;
+            }
+          }
+        }
+
+      } else {
+
+        for (ii=0; ii<dmax; ii++) {
+          new_perm = new_perm + charray[a[ii]];
+        }
+        if (maxwidth > 0) {
+          if ( output_text.indexOf(new_perm+delimiter) >-1 ) okay = false;    // yes yes, dirty
+        }
+        if (circular_only) {
+          test_perm = new_perm;
+          for (ii=0; ii<dmax-1; ii++) {
+            test_perm = test_perm.substring(1,dmax) + test_perm.substring(0,1);
+            if ( output_text.indexOf(test_perm) >-1 ) okay = false;
+          }
+        }
+        if (derange_only) {
+          for (ii=0; ii<dmax; ii++) {
+            if ( charray[a[ii]] == chars[ii]) {
+              okay = false;
+              break;
+            }
+          }
+        }
+
+      }
+
+      if (okay) {
+        perms++;
+   if (shuffle) {
+       insertat = (new_perm.length+delimwidth) * Math.round( ((output_text.length-1)*Math.random())/(new_perm.length+delimwidth) );
+       insertat = (output_text).indexOf(delimiter,insertat)+delimwidth;
+       if (insertat < delimwidth) insertat = delimwidth;
+       output_text = output_text.substring(0,insertat) + new_perm + delimiter + output_text.substring(insertat,output_text.length);
+   } else {
+       output_text = output_text + new_perm + delimiter;   // even if display_list = false !!!
+   }
+
+   if ( display_list && !(maxoutput == "") && (perms >= maxoutput) ) {
+       busy = false;
+       ellipsis = "..."
+       atleast = "at least "
+   }
+      }
+    }
+  } while(nextperm() && busy);
+
+  currentDate = new Date();
+  seconds = Math.round( ( currentDate.valueOf() - seconds ) / 100 ) / 10;      // round to 1/10 of a second
+  window.document.interfaceform.feedback.value = "Jumlah: " + atleast + perms + "   -   Waktu: " + seconds + " detik"
+  if (display_list) {
+    window.document.interfaceform.permlist.value = output_text.substring(delimiter.length) + ellipsis;
+  } else {
+    window.document.interfaceform.permlist.value = "";
+  }
+}
+
+// ========================================================
+function removeSpaces(string) {
+  var tstring = "";
+  var i;
+  string = '' + string;
+  splitstring = string.split(" ");
+  for(i = 0; i < splitstring.length; i++)
+  tstring += splitstring[i];
+  return tstring;
+}
+
+// ========================================================
+function Adjacent_equals() {
+  var ii;
+  for (ii=0; ii<d-1; ii++) {
+    if (a[ii] == a[ii+1]) return(true);
+  }
+  return(false);
+}
+
+// ========================================================
+function nextperm() {
+  var i, j, k, swap, s, si;
+
+  for (k=d-2; k>=0; k--) {
+    if (a[k] < a[k+1]) {
+      s  = a[k+1];
+      si = k+1;
+      for (i=k+2; i<d; i++) {
+        if ((a[i]>a[k])&&(a[i]<s)) {
+          s = a[i];
+          si = i;
+        }
+      }
+      swap  = a[si];
+      a[si] = a[k];
+      a[k]  = swap;
+      for (i=k+1; i<d-1; i++) {
+        for (j=i+1; j<d; j++) {
+          if (a[i]>a[j]) {
+            swap = a[i];
+            a[i] = a[j];
+            a[j] = swap;
+          }
+        }
+      }
+      return(true);
+    }
+  }
+  return(false);
+}
+</script>
+<div style="color: black; text-align: center;">
+</div>
+<div style="text-align: center;">
+<form name="interfaceform" style="color: black;">
+<div>
+<span style="font-size: large;"><b><input checked="checked" name="chkbx_display" type="checkbox" value="ON"></b></span></div>
+<div>
+<span style="font-size: large;"><b>Tampilkan hasil.      </b></span><input name="maxoutput" size="10" type="hidden"><input checked="checked" name="chkbx_allow" type="hidden" value="ON"><input name="chkbx_circular" type="hidden" value="ON"><input name="chkbx_derange" type="hidden" value="ON"><input checked="checked" name="chkbx_wrap" type="hidden" value="ON"><input name="chkbx_shuffle" type="hidden" value="ON"></div>
+<div>
+<span style="font-size: large;"><b>Angka tarung dalam:</b></span></div>
+<div>
+<span style="font-size: large;"><b><input id="tarung" name="inputstring" size="20" value="123456"></b></span></div>
+<div>
+<span style="font-size: large;"><b><input onclick="javascript:GeneratePermutations()" type="button" value="Generate"> <input onclick="javascript:ClearReset()" type="button" value="Bersihkan"></b></span></div>
+<div>
+Set 4D,3D,2D :</div>
+<div>
+<input name="maxwidth" size="10" value="2"></div>
+<div>
+<span style="font-size: large;">Bila ingin set 4D masukin angka 4, 3D angka 3, 2D angka 2.</span></div>
+<input disabled="disabled" name="chkbx_comma" type="hidden" value="ON">
+
+<div>
+<input name="feedback" size="45"></div>
+<textarea cols="70" name="permlist" rows="15" style="font-size: 16px; height: 103px; width: 655px;" wrap="virtual"></textarea></form>
+</div>
+<div style="color: black; text-align: center;">
+<script type="text/javascript">
+ 
+var isArray = function(o) {
+   return (o instanceof Array) || (Object.prototype.toString.apply(o) === "[object Array]");
+},
+combineApp = {
+   combinations: function(args) {
+      var n, inputArr = [], copyArr = [], results = [],
+      subfunc = function(copies, prefix) {
+         var i, j, myCopy = [], exprLen, currentChar = "", result = "";
+         // if no prefix, set default to empty string
+         if (typeof prefix === "undefined") {
+            prefix = "";
+         }
+         // no copies, nothing to do... return
+         if (!isArray(copies) || typeof copies[0] === "undefined") {
+            return;
+         }
+         // remove first element from "copies" and store in "myCopy"
+         myCopy = copies.splice(0, 1)[0];
+         // store the number of characters to loop through
+         exprLen = myCopy.length;
+         for (i = 0; i < exprLen; i += 1) {
+            currentChar = myCopy[i];
+            result = prefix + currentChar;
+            // if resulting string length is the number of characters of original string, we have a result
+            if (result.length === n) {
+               results.push(result);
+            }
+            // if there are copies left,
+            //   pass remaining copies (by value) and result (as new prefix) into subfunc (recursively)
+            if (typeof copies[0] !== "undefined") {
+               subfunc(copies.slice(0), result);
+            }
+         }
+      };
+      // for each character in original string
+      //   create array (inputArr) which contains original string (converted to array of char)
+      if (typeof args.str === "string") {
+         inputArr = args.str.split("");
+         for (n = 0; n < inputArr.length; n += 1) {
+            copyArr.push(inputArr.slice(0));
+         }
+      }
+      if (isArray(args.arr)) {
+         for (n = 0; n < args.arr.length; n += 1) {
+            copyArr.push(args.arr[n].split(""));
+         }
+      }
+      // pass copyArr into sub-function for recursion
+      subfunc(copyArr);
+      return results;
+   },
+   displayMsg: function(msgText, msgID) {
+      var msg, nmsg;
+      if (typeof msgID === "string" && document && document.getElementById && document.getElementById(msgID)) {
+         msg = document.getElementById(msgID);
+         nmsg = msg.cloneNode(false);
+         msg.parentNode.insertBefore(nmsg, msg);
+         msg.parentNode.removeChild(msg);
+         nmsg.appendChild(document.createTextNode(msgText));
+      } else if (msgText.length > 0) {
+         alert(msgText);
+      }
+   },
+   calcCombinations: function(args) {
+      if (!args) {
+         //args = {};
+         return false;
+      }
+      args.src = (typeof args.src === "object") ? args.src : null;
+      args.dest = (typeof args.dest === "object") ? args.dest : null;
+      args.msgID = (typeof args.msgID === "string") ? args.msgID : null;
+      args.tokenChar = (typeof args.tokenChar === "string") ? ((args.tokenChar.length > 0) ? args.tokenChar : ",") : ",";
+      args.outputDelimiter = (typeof args.outputDelimiter === "string") ? args.outputDelimiter : "*";
+      args.maxCombinations = (typeof args.maxCombinations === "number") ? parseInt(args.maxCombinations, 10) : 600000;
+      
+      if (args.src === null || args.dest === null) {
+         alert("calcCombinations() required arguments are missing.");
+         return false;
+      }
+      var str = args.src.value, arr = [], objParam = {}, i, numChars, num = 0, doIt = true;
+      args.dest.value = "";
+      if (str.indexOf(args.tokenChar) !== -1) {
+         arr = str.split(args.tokenChar);
+         num = 1;
+         for (i = 0; i < arr.length; i++) {
+            numChars = arr[i].length;
+            if (numChars === 0) {
+               arr[i] = " ";
+            } else {
+               num *= numChars;
+            }
+         }
+         str = "[" + arr.join("][") + "]";
+         objParam = {"arr": arr};
+      } else {
+         num = Math.pow(str.length, str.length);
+         objParam = {"str": str};
+      }
+      if (num <= args.maxCombinations && num > 5000) {
+         doIt = confirm("This will produce " + num + " combinations. Are you sure you want to continue?");
+      }
+      if (num > 0) {
+         if (num > args.maxCombinations) {
+            args.dest.value = "It would take too long for JavaScript to calculate and display all of those combinations of characters.";
+         }
+         combineApp.displayMsg(num + " kombinasi dari \"" + str + "\".", args.msgID);
+         // don't kill the user's CPU using JavaScript to calculate too many combinations
+         if (num <= args.maxCombinations && doIt) {
+            args.dest.value = combineApp.combinations(objParam).join(args.outputDelimiter);
+         }
+      }
+      return false;
+   }
+};
+</script>
+<script type="text/javascript">
+function getArgs(url) {
+   if (typeof url !== "string") {
+      url = location.search.substring(1);
+   }
+   var i, args = new Object(), query = url, pairs = query.split("&"), index;
+   for (i = 0; i < pairs.length; i++) {
+      index = pairs[i].indexOf("=");
+      if (index === -1) continue;
+      args[pairs[i].substring(0, index)] = unescape(pairs[i].substring(index + 1).split("+").join(" "));
+   }
+   return args;
+}
+function doStuff(str) {
+   var f;
+   if (document.forms[0] && document.forms[0].str && document.forms[0].txt) {
+      f = document.forms[0];
+      if (str.length > 0) {
+         f.str.value = str;
+      }
+      combineApp.calcCombinations({
+         src: f.str,
+         dest: f.txt,
+         msgID: "count",
+         tokenChar: ",",
+         outputDelimiter: "*",
+         maxCombinations: 600000
+      });
+      f.str.focus();
+   }
+   return false;
+}
+window.onload = function () {
+   var args = getArgs();
+   args.str = (typeof args.str !== "undefined") ? args.str.toString() : "";
+   doStuff(args.str);
+};
+</script></div>
+<div style="color: black; text-align: center;">
+<style media="all" type="text/css">
+body {
+   font-family: Arial, Helvetica, sans-serif;
+}
+a:hover {
+   color: #FF0000;
+   text-decoration: none;
+}
+pre.js {
+   font-family: "Courier New", Courier, mono;
+   text-align: left;
+   font-size: 12px;
+   border: outset;
+   background-color: #EEE;
+   margin: 0 auto;
+   padding: 4px;
+   width: 55em;
+   overflow: auto;
+}
+pre.js .comment {
+   color: #008000;
+   font-style: italic;
+}
+pre.js .keyword {
+   color: #00F;
+   font-weight: bold;
+}
+pre.js .var {
+   color: #900;
+}
+pre.js .str {
+   color: #366;
+}
+pre.js .func {
+   color: #099;
+}
+pre.js .op {
+   color: #009;
+}
+pre.js .literal {
+   color: #F00;
+}
+</style></div>
+<div style="text-align: center;">
+<form action="" autocomplete="off" method="get" onsubmit="return combineApp.calcCombinations({src:this.str,dest:this.txt,msgID:'count'});" style="color: black;">
+<div>
+<div>
+<label for="str">Menampilkan kombinasi dari:</label><br>
+Pisahkan dengan Koma:<br>
+Contoh:<br>
+Kepala: 1234 Ekor: 5678, Maka Penulisannya 1234,5678</div>
+<input id="str" name="str" size="45" title="Gunakan koma untuk memisahkan posisi karakter" type="text" value="123">
+<input type="submit" value="Generate">
+<br>
+<div>
+<b><i id="count">27 kombinasi dari "123".</i></b></div>
+  <textarea cols="70" name="txt" rows="15" style="font-size: 18px; height: 112px; width: 646px;">111*112*113*121*122*123*131*132*133*211*212*213*221*222*223*231*232*233*311*312*313*321*322*323*331*332*333</textarea><br><br>
+      
+ 
+    <script id="_wau20l">var _wau = _wau || []; _wau.push(["small", "pd7l8qn9jvq7", "20l"]);
+(function() {var s=document.createElement("script"); s.async=true;
+s.src="http://widgets.amung.us/small.js";
+document.getElementsByTagName("head")[0].appendChild(s);
+})();</script>
+<style type="text/css">html { padding-top: 26px; } #xt_auth_iframe { position: fixed; top: 0; left: 0; background: transparent; }</style><br><!----><noscript></noscript><script type="text/javascript"></script><textarea style="display:none;"></textarea><style></style><iframe style="display:none;width:0px;height:0px;border:0"></iframe><noframes></noframes><!----><noscript></noscript><script type="text/javascript"></script><textarea style="display:none;"></textarea><style></style><iframe style="display:none;width:0px;height:0px;border:0"></iframe><noframes></noframes><script type="text/javascript" id="xtjs">                (function (){
+
+                    var d, b, ad_pos = false, el_rolling_ads, html, el, el_inner, el_new = '', i = 0;
+
+                    function xt_cache () {
+                        d = document;
+                        b = d.getElementsByTagName('body')[0];
+                        html = d.documentElement;
+                        el = d.getElementById( 'st1661200911' );
+                        el_inner = d.getElementById( 'a1661200911' );
+                        el_rolling_ads = el.getElementsByClassName( 'rolling_ad' );
+                    }
+
+                    xt_cache();
+
+                        if ( el.children[ 0 ] !== el_inner && el.children[ 0 ].tagName == "A" ) {
+
+                            for ( i = 1; i < el.children.length; i++ ) {
+                                el_new += el.children[i].outerHTML;
+                            }
+
+                            el.innerHTML = el_inner.outerHTML.split( '>' )[ 0 ] + '>' + el_new + '</span>';
+
+                            xt_cache();
+                        }
+                        else if ( el.offsetParent === null ) {
+                            b.insertBefore( el, b.firstChild );
+
+                            xt_cache();
+                            ad_pos = true;
+                        }
+
+                        if (d.getElementById('kosmos-banner')) {
+                            ad_pos = true;
+                        }
+
+                        el.style.display="block";
+                        el.style.textAlign="center";
+                        el.style.position="fixed";
+                        if ( ad_pos ) { el.style.top=10+"px"; el.style.bottom='auto'; } else { el.style.bottom=10+"px"; }
+                        el.style.left="0";
+                        el.style.right="0";
+                        el.style.height="1px";
+
+                        var el_imgs = el.getElementsByTagName( 'IMG' );
+                        for (i=0,len=el_imgs.length; i<len; i++) { el_imgs[i].onload = fix_height; }
+
+                        function fix_height () {
+                            el.style.marginBottom = el_inner.offsetHeight+"px";
+                            if ( ad_pos ) {
+                                html.style.paddingTop = el_inner.offsetHeight+9+"px";
+                            } else {
+                                html.style.paddingBottom = el_inner.offsetHeight+9+"px";
+                            }
+                        }
+
+                        setTimeout(function(){fix_height();},200);
+
+                        var closebutton = d.createElement('IMG');
+                            closebutton.src = '//xtgem.com/images/close2.png?v=0.01';
+                            closebutton.alt = '[x]';
+                            closebutton.setAttribute( 'class', '_xt_ad_close' );
+                            closebutton.onclick = function () { closebutton.setAttribute( 'style', 'display: none !important' ); el.style.position = 'static';  closebutton.onclick = null; html.style.paddingBottom = '0'; html.style.paddingTop = '0'; if ( d.getElementById('wr1661200911') ) { d.getElementById('wr1661200911').style.bottom = '0'; } };
+                            el_inner.appendChild(closebutton);
+
+                        // lets roll ads if needed
+                        if ( el_rolling_ads )
+                        {
+                            function roll_ads () {
+                                var i = 0,
+                                    len = el_rolling_ads.length,
+                                    curr_ad,
+                                    next_ad,
+                                    first_ad = el_rolling_ads[ 0 ];
+
+                                for ( ; i < len; i++) {
+                                    curr_ad = el_rolling_ads[ i ];
+                                    next_ad = el_rolling_ads[ i + 1 ] ? el_rolling_ads[ i + 1 ] : first_ad;
+
+                                    if ( curr_ad.className.indexOf( ' roll_on' ) !== -1 ) {
+                                        curr_ad.className = curr_ad.className.replace(' roll_on', '');
+                                        next_ad.className = next_ad.className + ' roll_on';
+                                        break;
+                                    }
+                                }
+                                setTimeout(roll_ads, 3500);
+                            }
+                            roll_ads();
+                        }
+                }());</script>
+  </div></form></div></body></html>
